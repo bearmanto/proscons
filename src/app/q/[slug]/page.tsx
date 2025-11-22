@@ -10,13 +10,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .select('title, slug')
     .eq('slug', slug)
     .maybeSingle();
-  const title = data?.title ? `${data.title}` : 'Pros & Cons';
+  const title = data?.title ? `${data.title}` : 'Pro & Kontra';
   const url = `/q/${slug}`;
   return {
     title,
-    description: 'Explore the best reasons for and against this topic and vote on them.',
-    openGraph: { title, description: 'Explore the best reasons for and against this topic and vote on them.', url },
-    twitter: { title, description: 'Explore the best reasons for and against this topic and vote on them.' },
+    description: 'Jelajahi alasan terbaik untuk pro dan kontra topik ini dan berikan suaramu.',
+    openGraph: { title, description: 'Jelajahi alasan terbaik untuk pro dan kontra topik ini dan berikan suaramu.', url },
+    twitter: { title, description: 'Jelajahi alasan terbaik untuk pro dan kontra topik ini dan berikan suaramu.' },
   };
 }
 
@@ -33,14 +33,14 @@ export default async function SummaryPage({ params }: { params: Promise<{ slug: 
     return <p className="p-6 text-red-600">{error.message}</p>;
   }
   if (!q) {
-    return <p className="p-6">Question not found.</p>;
+    return <p className="p-6">Pertanyaan tidak ditemukan.</p>;
   }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
       <main className="mx-auto max-w-4xl px-6 py-10">
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">{q.title}</h1>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Community reasons. Vote to rank them.</p>
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Alasan dari komunitas. Berikan suara untuk memeringkatnya.</p>
         <div className="mt-6">
           <ReasonList slug={q.slug} />
         </div>

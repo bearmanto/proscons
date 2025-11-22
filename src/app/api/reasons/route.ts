@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { z } from "zod";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
+import { getOrSetUserKey } from "@/lib/identity";
 
 // Shared rate limiter
 const hits = new Map<string, number[]>();
@@ -91,9 +91,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-    const cookieStore = await cookies();
-    const uid = cookieStore.get("uid")?.value;
-    if (!uid) return NextResponse.json({ error: "uid cookie missing" }, { status: 400 });
+
+    // Ensure uid cookie exists (creates it server-side if missing)
+    const uid = await getOrSetUserKey();
 
     if (!allow(ip, `reason:${uid}`)) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
@@ -107,12 +107,17 @@ export async function POST(request: Request) {
 
     const question_id = await getQuestionIdBySlugOrActive(parsed.data.slug);
 
-    const admin = supabaseAdmin();
-    const { error } = await admin
+    // Attach user_id if logged in (SSR client carries the session from cookies)
+    const supabase = await supabaseServer();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const { error } = await supabase
       .from("reasons")
       .insert({
         question_id,
-        user_key: uid,
+        uid, // keep anonymous key for backfill/claim
+        user_key: uid, // legacy column support
+        user_id: user?.id ?? null,
         side: parsed.data.side,
         body: parsed.data.body.trim(),
       });

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { z } from "zod";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
+import { getOrSetUserKey } from "@/lib/identity";
 
 const hits = new Map<string, number[]>();
 function allow(ip: string, key: string, limit = 40, windowMs = 60_000) {
@@ -22,9 +22,9 @@ const VoteSchema = z.object({
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-    const cookieStore = await cookies();
-    const uid = cookieStore.get("uid")?.value;
-    if (!uid) return NextResponse.json({ error: "uid cookie missing" }, { status: 400 });
+
+    // Ensure uid cookie exists (creates it server-side if missing)
+    const uid = await getOrSetUserKey();
 
     if (!allow(ip, `reason-vote:${uid}`)) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
@@ -36,13 +36,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid body", details: parsed.error.flatten() }, { status: 400 });
     }
 
-    const admin = supabaseAdmin();
-    const { error } = await admin
+    // Determine logged-in user (if any)
+    const supabase = await supabaseServer();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const payload = user
+      ? [{ reason_id: parsed.data.reason_id, user_id: user.id, user_key: uid, value: parsed.data.value }]
+      : [{ reason_id: parsed.data.reason_id, uid, user_key: uid, value: parsed.data.value }];
+
+    const onConflict = user ? "user_id,reason_id" : "uid,reason_id";
+
+    const { error } = await supabase
       .from("reason_votes")
-      .upsert(
-        [{ reason_id: parsed.data.reason_id, user_key: uid, value: parsed.data.value }],
-        { onConflict: "reason_id,user_key" }
-      );
+      .upsert(payload, { onConflict });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
