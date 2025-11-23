@@ -1,12 +1,18 @@
-import { NextResponse, NextRequest } from "next/server";
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
 
-export function proxy(request: NextRequest) {
-  const res = NextResponse.next();
+export async function proxy(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
-  // Only set once
+  // 1. Anonymous UID Logic (from original proxy.ts)
+  // Only set once if missing
   if (!request.cookies.get("uid")) {
-    const uid = crypto.randomUUID(); // Web Crypto in the Edge runtime
-    res.cookies.set({
+    const uid = crypto.randomUUID();
+    response.cookies.set({
       name: "uid",
       value: uid,
       httpOnly: true,
@@ -17,12 +23,58 @@ export function proxy(request: NextRequest) {
     });
   }
 
-  return res;
+  // 2. Supabase Client Setup (for Auth)
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  // 3. Admin Auth Check
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim());
+    if (!adminEmails.includes(user.email || '')) {
+      // Not an admin, redirect to home
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
+  return response;
 }
 
-// Run on app routes and skip static assets
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|webp|ico|js|css|map)$).*)",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - api/ (API routes - though we might want to protect some admin APIs later)
+     * Feel free to modify this pattern to include more paths.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

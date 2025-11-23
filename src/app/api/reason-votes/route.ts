@@ -26,7 +26,8 @@ export async function POST(request: Request) {
     // Ensure uid cookie exists (creates it server-side if missing)
     const uid = await getOrSetUserKey();
 
-    if (!allow(ip, `reason-vote:${uid}`)) {
+    // Limit to 5 votes per 10 seconds to prevent spam
+    if (!allow(ip, `reason-vote:${uid}`, 5, 10_000)) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 
@@ -44,11 +45,33 @@ export async function POST(request: Request) {
       ? [{ reason_id: parsed.data.reason_id, user_id: user.id, user_key: uid, value: parsed.data.value }]
       : [{ reason_id: parsed.data.reason_id, uid, user_key: uid, value: parsed.data.value }];
 
-    const onConflict = user ? "user_id,reason_id" : "uid,reason_id";
+    // We need to handle the conflict properly.
+    // If we are anonymous, we key on (uid, reason_id).
+    // If we are logged in, we key on (user_id, reason_id).
+    // However, Supabase upsert requires a unique constraint to be specified if it's not the primary key.
+    // Assuming the table has a unique constraint on `uid, reason_id` AND `user_id, reason_id` is tricky if they are partial indexes.
+    // A safer bet for now is to first try to find an existing vote and update it, or insert if not found.
+    // OR, we can try to rely on the ID if we had it, but we don't.
+
+    // Let's try to do a select first to get the ID, then upsert by ID.
+
+    let existing;
+    if (user) {
+      const { data } = await supabase.from("reason_votes").select("id").eq("user_id", user.id).eq("reason_id", parsed.data.reason_id).single();
+      existing = data;
+    } else {
+      const { data } = await supabase.from("reason_votes").select("id").eq("uid", uid).eq("reason_id", parsed.data.reason_id).single();
+      existing = data;
+    }
+
+    const finalPayload = {
+      ...payload[0],
+      id: existing?.id, // If we have an ID, include it to update
+    };
 
     const { error } = await supabase
       .from("reason_votes")
-      .upsert(payload, { onConflict });
+      .upsert(finalPayload);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

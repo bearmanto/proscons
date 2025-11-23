@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ThumbsUp, ThumbsDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from '@/lib/toast';
 
 export type ReasonItem = {
   id: string;
@@ -27,11 +28,18 @@ export default function ReasonCard({ item, onVoted }: { item: ReasonItem; onVote
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason_id: item.id, value }),
       });
+      if (res.status === 429) {
+        toast.error('Terlalu cepat. Mohon tunggu sebentar.');
+        return;
+      }
+
       if (!res.ok) throw new Error('vote failed');
+
       onVoted();
+      toast.success('Suara Anda tersimpan.');
     } catch (e) {
       console.error(e);
-      alert('Could not submit vote.');
+      toast.error('Anda tidak dapat memberikan suara dua kali.');
     } finally {
       setBusy(false);
     }

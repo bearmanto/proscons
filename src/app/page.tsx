@@ -1,7 +1,6 @@
 import { supabaseServer } from '@/lib/supabase/server';
 import VoteToggle from '@/components/VoteToggle';
 import ShareMenu from '@/components/ShareMenu';
-import BadgeList from '@/components/BadgeList';
 import { MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
@@ -31,6 +30,9 @@ export default async function Home() {
             <Link href="/archive" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
               Arsip
             </Link>
+            <Link href="/me" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
+              Saya
+            </Link>
             {q && <ShareMenu url={shareUrl} title={q.title} />}
           </div>
         </header>
@@ -49,8 +51,6 @@ export default async function Home() {
             <div className="w-full max-w-sm mt-4">
               <VoteToggle slug={q.slug} />
             </div>
-
-            <BadgeList />
           </section>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center">
