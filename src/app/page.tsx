@@ -136,6 +136,25 @@ export default async function Home() {
           </div>
         )}
       </main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Pro & Kontra',
+            url: process.env.NEXT_PUBLIC_SITE_URL || 'https://proscons.app',
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: {
+                '@type': 'EntryPoint',
+                urlTemplate: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://proscons.app'}/archive?q={search_term_string}`,
+              },
+              'query-input': 'required name=search_term_string',
+            },
+          }),
+        }}
+      />
     </div>
   );
 }

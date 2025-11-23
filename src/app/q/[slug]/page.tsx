@@ -48,6 +48,45 @@ export default async function SummaryPage({ params }: { params: Promise<{ slug: 
     notFound();
   }
 
+  // Fetch reasons for SEO (Structured Data)
+  const { data: reasons } = await db
+    .from('reasons')
+    .select('id, body, side, created_at, reason_votes(value)')
+    .eq('question_id', q.id)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(10); // Limit to top 10 for SEO to keep payload light
+
+  const answers = reasons?.map(r => ({
+    '@type': 'Answer',
+    text: r.body,
+    dateCreated: r.created_at,
+    upvoteCount: r.reason_votes?.reduce((a: number, b: { value: number }) => a + b.value, 0) || 0,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://proscons.app'}/q/${q.slug}#${r.id}`,
+    author: {
+      '@type': 'Person',
+      name: 'Anonymous User'
+    }
+  })) || [];
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'QAPage',
+    mainEntity: {
+      '@type': 'Question',
+      name: q.title,
+      text: `Apa pendapat Anda tentang "${q.title}"? Lihat argumen pro dan kontra.`,
+      answerCount: answers.length,
+      upvoteCount: 0,
+      dateCreated: new Date().toISOString(), // We should probably fetch question creation date
+      author: {
+        '@type': 'Organization',
+        name: 'Pro & Kontra'
+      },
+      suggestedAnswer: answers
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
       <main className="mx-auto max-w-4xl px-6 py-10">
@@ -57,6 +96,10 @@ export default async function SummaryPage({ params }: { params: Promise<{ slug: 
           <ReasonList slug={q.slug} />
         </div>
       </main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     </div>
   );
 }
