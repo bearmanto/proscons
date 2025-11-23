@@ -30,6 +30,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
+import { notFound } from 'next/navigation';
+
 export default async function SummaryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const db = await supabaseServer();
@@ -43,7 +45,7 @@ export default async function SummaryPage({ params }: { params: Promise<{ slug: 
     return <p className="p-6 text-red-600">{error.message}</p>;
   }
   if (!q) {
-    return <p className="p-6">Pertanyaan tidak ditemukan.</p>;
+    notFound();
   }
 
   return (
