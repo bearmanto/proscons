@@ -2,9 +2,8 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Trophy, Star, Zap, MessageCircle, Scale } from 'lucide-react';
+import { Trophy, Star, Zap, MessageCircle, Scale, Moon, Sunrise, TrendingUp, GitCompare } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast } from '@/lib/toast';
 
 const BADGE_DEFINITIONS = [
     {
@@ -28,7 +27,6 @@ const BADGE_DEFINITIONS = [
         icon: MessageCircle,
         color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
     },
-    // Keep others as placeholders or future implementation
     {
         id: 'balanced',
         name: 'Balanced View',
@@ -37,11 +35,36 @@ const BADGE_DEFINITIONS = [
         color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
     },
     {
+        id: 'night_owl',
+        name: 'Night Owl',
+        description: 'Vote between 1 AM and 4 AM',
+        icon: Moon,
+        color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+        hidden: true,
+    },
+    {
+        id: 'early_bird',
+        name: 'Early Bird',
+        description: 'Be among the first 10 voters',
+        icon: Sunrise,
+        color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+        hidden: true,
+    },
+    {
         id: 'trendsetter',
         name: 'Trendsetter',
-        description: 'Reason reached 10+ score',
-        icon: Trophy,
+        description: 'Vote for winning side early',
+        icon: TrendingUp,
+        color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+        hidden: true,
+    },
+    {
+        id: 'contrarian',
+        name: 'Contrarian',
+        description: 'Top reason on losing side',
+        icon: GitCompare,
         color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
+        hidden: true,
     },
 ];
 
@@ -55,7 +78,8 @@ export default function BadgeList() {
                 const res = await fetch('/api/badges');
                 if (!res.ok) throw new Error('Failed to fetch badges');
                 const data = await res.json();
-                const ids = new Set(data.badges.map((b: any) => b.badge_id));
+                // Map DB badge codes to our IDs if needed, or assume they match
+                const ids = new Set(data.badges.map((b: any) => b.badge_code || b.badge_id));
                 setUnlockedBadges(ids as Set<string>);
             } catch (e) {
                 console.error(e);
@@ -73,9 +97,12 @@ export default function BadgeList() {
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Your Badges</h3>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {BADGE_DEFINITIONS.map((badge) => {
                     const isUnlocked = unlockedBadges.has(badge.id);
+                    // Hide description if hidden badge is locked
+                    const description = (badge.hidden && !isUnlocked) ? '???' : badge.description;
+
                     return (
                         <Card
                             key={badge.id}
@@ -89,7 +116,7 @@ export default function BadgeList() {
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">{badge.name}</p>
-                                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-tight">{badge.description}</p>
+                                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-tight">{description}</p>
                             </div>
                             {isUnlocked && (
                                 <Badge variant="secondary" className="text-[9px] h-4 px-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500">

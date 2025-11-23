@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/server";
 
 export async function PATCH(
     request: Request,
@@ -7,13 +7,21 @@ export async function PATCH(
 ) {
     try {
         const { id } = await params;
-        const db = await supabaseServer();
+        const db = supabaseAdmin();
         const json = await request.json();
-        const { deleted } = json;
+        const { deleted, is_featured } = json;
+
+        const updates: any = {};
+        if (typeof deleted !== 'undefined') {
+            updates.deleted_at = deleted ? new Date().toISOString() : null;
+        }
+        if (typeof is_featured !== 'undefined') {
+            updates.is_featured = is_featured;
+        }
 
         const { error } = await db
             .from("reasons")
-            .update({ deleted_at: deleted ? new Date().toISOString() : null })
+            .update(updates)
             .eq("id", id);
 
         if (error) throw error;

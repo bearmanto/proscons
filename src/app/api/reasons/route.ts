@@ -71,7 +71,7 @@ export async function GET(request: Request) {
     // Grab reasons with nested votes to compute score on the server
     const { data, error } = await admin
       .from("reasons")
-      .select("id, question_id, side, body, created_at, reason_votes(value)")
+      .select("id, question_id, side, body, created_at, is_featured, reason_votes(value)")
       .eq("question_id", question_id)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
@@ -88,12 +88,16 @@ export async function GET(request: Request) {
         neutral: values.filter((v) => v === 0).length,
         down: values.filter((v) => v === -1).length,
       };
-      const item = { id: r.id, body: r.body, side: r.side, created_at: r.created_at, score, counts };
+      const item = { id: r.id, body: r.body, side: r.side, created_at: r.created_at, score, counts, is_featured: r.is_featured };
       (r.side === "pro" ? bySide.pro : bySide.con).push(item);
     }
 
     // Sort each side by score desc then newest
-    const sortFn = (a: any, b: any) => (b.score - a.score) || (new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const sortFn = (a: any, b: any) => {
+      if (a.is_featured && !b.is_featured) return -1;
+      if (!a.is_featured && b.is_featured) return 1;
+      return (b.score - a.score) || (new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    };
     bySide.pro.sort(sortFn);
     bySide.con.sort(sortFn);
 

@@ -5,6 +5,7 @@ import { MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import TugOfWar from '@/components/TugOfWar';
 import PageViewTracker from '@/components/PageViewTracker';
+import RealtimeVotes from '@/components/RealtimeVotes';
 
 export async function generateMetadata() {
   const db = await supabaseServer();
@@ -126,6 +127,8 @@ export default async function Home() {
             <div className="w-full max-w-sm mt-4">
               <VoteToggle slug={activeQuestion.slug} />
             </div>
+            {/* Insert RealtimeVotes component here */}
+            <RealtimeVotes questionId={activeQuestion.id} />
           </section>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center">

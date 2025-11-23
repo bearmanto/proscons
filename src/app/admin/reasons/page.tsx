@@ -12,7 +12,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Star } from 'lucide-react';
 import { toast } from '@/lib/toast';
 
 export default function AdminReasonsPage() {
@@ -67,6 +67,28 @@ export default function AdminReasonsPage() {
             });
             if (!res.ok) throw new Error('Failed to update');
             toast.success(currentStatus ? 'Reason restored' : 'Reason deleted');
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to update status');
+            // Revert
+            fetchReasons(page);
+        }
+    }
+
+    async function toggleFeatured(id: string, currentStatus: boolean) {
+        // Optimistic update
+        setReasons(prev => prev.map(r =>
+            r.id === id ? { ...r, is_featured: !currentStatus } : r
+        ));
+
+        try {
+            const res = await fetch(`/api/admin/reasons/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_featured: !currentStatus }),
+            });
+            if (!res.ok) throw new Error('Failed to update');
+            toast.success(currentStatus ? 'Reason unpinned' : 'Reason pinned');
         } catch (e) {
             console.error(e);
             toast.error('Failed to update status');
@@ -134,7 +156,16 @@ export default function AdminReasonsPage() {
                                     <TableCell className="text-xs text-zinc-500 whitespace-nowrap">
                                         {new Date(r.created_at).toLocaleDateString()}
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right flex items-center justify-end gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => toggleFeatured(r.id, !!r.is_featured)}
+                                            className={r.is_featured ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50' : 'text-zinc-400 hover:text-amber-500 hover:bg-amber-50'}
+                                            title={r.is_featured ? "Unpin" : "Pin as Featured"}
+                                        >
+                                            <Star className={`w-4 h-4 ${r.is_featured ? 'fill-amber-500' : ''}`} />
+                                        </Button>
                                         <Button
                                             variant="ghost"
                                             size="sm"
