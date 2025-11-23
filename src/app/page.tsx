@@ -4,6 +4,7 @@ import ShareMenu from '@/components/ShareMenu';
 import { MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import TugOfWar from '@/components/TugOfWar';
+import PageViewTracker from '@/components/PageViewTracker';
 
 export async function generateMetadata() {
   const db = await supabaseServer();
@@ -155,6 +156,7 @@ export default async function Home() {
           }),
         }}
       />
+      <PageViewTracker name="home_view" />
     </div>
   );
 }

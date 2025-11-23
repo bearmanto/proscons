@@ -3,6 +3,9 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/lib/toast';
+import confetti from 'canvas-confetti';
+import { track } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 import { ArrowRight, Check } from 'lucide-react';
 

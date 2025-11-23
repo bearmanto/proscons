@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThumbsUp, ThumbsDown, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from '@/lib/toast';
+import { track } from '@/lib/analytics';
 
 export type ReasonItem = {
   id: string;
@@ -33,13 +34,25 @@ export default function ReasonCard({ item, onVoted }: { item: ReasonItem; onVote
         return;
       }
 
-      if (!res.ok) throw new Error('vote failed');
+      if (!res.ok) {
+        // Check for specific error like duplicate vote (e.g., status 409 Conflict)
+        if (res.status === 409) {
+          throw new Error('Anda tidak dapat memberikan suara dua kali.');
+        }
+        throw new Error('Gagal memberikan suara');
+      }
 
+      const type = value === 1 ? 'up' : value === 0 ? 'neutral' : 'down';
+      track('reason_vote', { reasonId: item.id, type });
       onVoted();
-      toast.success('Suara Anda tersimpan.');
-    } catch (e) {
+      // toast.success('Suara Anda tersimpan.'); // Removed as per instruction
+    } catch (e: any) {
       console.error(e);
-      toast.error('Anda tidak dapat memberikan suara dua kali.');
+      if (e.message === 'Anda tidak dapat memberikan suara dua kali.') {
+        toast.error(e.message);
+      } else {
+        toast.error('Gagal memberikan suara');
+      }
     } finally {
       setBusy(false);
     }

@@ -31,6 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 import { notFound } from 'next/navigation';
+import PageViewTracker from '@/components/PageViewTracker';
 
 export default async function SummaryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -100,6 +101,7 @@ export default async function SummaryPage({ params }: { params: Promise<{ slug: 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <PageViewTracker name="question_view" params={{ slug: q.slug }} />
     </div>
   );
 }

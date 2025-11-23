@@ -148,7 +148,7 @@ export async function POST(request: Request) {
       .is('deleted_at', null);
 
     if (count && count > 0) {
-      return NextResponse.json({ error: "You have already submitted a reason for this question." }, { status: 400 });
+      return NextResponse.json({ error: "You have already submitted a reason for this question." }, { status: 409 });
     }
 
     const { error } = await supabase

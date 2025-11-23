@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, FileText, MessageSquare, Shield, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, MessageSquare, Shield, LogOut, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
@@ -26,6 +26,7 @@ export default function AdminNav() {
         { href: '/admin/questions', label: 'Questions', icon: FileText },
         { href: '/admin/reasons', label: 'Reasons', icon: MessageSquare },
         { href: '/admin/moderation', label: 'Moderation', icon: Shield },
+        { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     ];
 
     return (
