@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { supabaseServer } from '@/lib/supabase/server';
 import ReasonList from '@/components/ReasonList';
+import Breadcrumb from '@/components/Breadcrumb';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -90,7 +91,15 @@ export default async function SummaryPage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black">
+
+
       <main className="mx-auto max-w-4xl px-6 py-10">
+        <div className="mb-8">
+          <Breadcrumb items={[
+            { label: 'Beranda', href: '/' },
+            { label: q.title }
+          ]} />
+        </div>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">{q.title}</h1>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Alasan dari komunitas. Berikan suara untuk memeringkatnya.</p>
         <div className="mt-6">
