@@ -14,12 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-  title: {
-    default: 'Pro & Kontra',
-    template: '%s · Pro & Kontra',
-  },
-  description: 'Pilih pro atau kontra, jelaskan alasanmu, dan peringkatkan argumen terbaik.',
+  metadataBase: new URL('https://proscons.app'),
+  title: 'Pro & Kontra - Platform Debat Anonim',
+  description: 'Tempat aman untuk berdiskusi dan melihat dua sisi dari setiap cerita.',
   openGraph: {
     type: 'website',
     title: 'Pro & Kontra',

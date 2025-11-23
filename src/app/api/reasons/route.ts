@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
 import { getOrSetUserKey } from "@/lib/identity";
+import { isProfane } from "@/lib/profanity";
 
 // Shared rate limiter
 const hits = new Map<string, number[]>();
@@ -34,16 +35,29 @@ async function getQuestionIdBySlugOrActive(slug?: string) {
     if (!data) throw new Error("Question not found");
     return data.id as string;
   }
+  const now = new Date().toISOString();
+
+  // Fetch potential active questions
   const { data, error } = await admin
     .from("questions")
-    .select("id, is_active, created_at")
+    .select("id, is_active, created_at, starts_at, ends_at")
     .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("created_at", { ascending: false });
+
   if (error) throw error;
-  if (!data) throw new Error("No active question found");
-  return data.id as string;
+
+  // Find the first one that is currently active based on schedule
+  const active = data?.find(q => {
+    const start = q.starts_at ? new Date(q.starts_at).toISOString() : null;
+    const end = q.ends_at ? new Date(q.ends_at).toISOString() : null;
+
+    if (start && start > now) return false;
+    if (end && end < now) return false;
+    return true;
+  });
+
+  if (!active) throw new Error("No active question found");
+  return active.id as string;
 }
 
 export async function GET(request: Request) {
@@ -59,6 +73,7 @@ export async function GET(request: Request) {
       .from("reasons")
       .select("id, question_id, side, body, created_at, reason_votes(value)")
       .eq("question_id", question_id)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -105,11 +120,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid body", details: parsed.error.flatten() }, { status: 400 });
     }
 
+
+
     const question_id = await getQuestionIdBySlugOrActive(parsed.data.slug);
 
     // Attach user_id if logged in (SSR client carries the session from cookies)
     const supabase = await supabaseServer();
     const { data: { user } } = await supabase.auth.getUser();
+
+    const admin = supabaseAdmin();
+
+    // 1. Check Profanity (DB)
+    const { data: banned } = await admin.from('banned_words').select('word');
+    const badWords = banned?.map(b => b.word) || [];
+    const lowerBody = parsed.data.body.toLowerCase();
+    if (badWords.some(w => lowerBody.includes(w))) {
+      return NextResponse.json({ error: "Please keep the discussion civil." }, { status: 400 });
+    }
+
+    // 2. Check Limit (One reason per user per question)
+    // We check both user_id (if logged in) and uid (cookie)
+    const { count } = await admin
+      .from('reasons')
+      .select('*', { count: 'exact', head: true })
+      .eq('question_id', question_id)
+      .or(user ? `user_id.eq.${user.id},uid.eq.${uid}` : `uid.eq.${uid}`)
+      .is('deleted_at', null);
+
+    if (count && count > 0) {
+      return NextResponse.json({ error: "You have already submitted a reason for this question." }, { status: 400 });
+    }
 
     const { error } = await supabase
       .from("reasons")

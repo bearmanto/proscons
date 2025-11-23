@@ -15,8 +15,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title,
     description: 'Jelajahi alasan terbaik untuk pro dan kontra topik ini dan berikan suaramu.',
-    openGraph: { title, description: 'Jelajahi alasan terbaik untuk pro dan kontra topik ini dan berikan suaramu.', url },
-    twitter: { title, description: 'Jelajahi alasan terbaik untuk pro dan kontra topik ini dan berikan suaramu.' },
+    openGraph: {
+      title,
+      description: 'Jelajahi alasan terbaik untuk pro dan kontra topik ini dan berikan suaramu.',
+      url,
+      images: [`/api/og?title=${encodeURIComponent(title)}`],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: 'Jelajahi alasan terbaik untuk pro dan kontra topik ini dan berikan suaramu.',
+      images: [`/api/og?title=${encodeURIComponent(title)}`],
+    },
   };
 }
 

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { createBrowserClient } from '@supabase/ssr';
+
 import { toast } from '@/lib/toast';
 import { Loader2 } from 'lucide-react';
 
@@ -17,7 +17,18 @@ type Question = {
     slug: string;
     description?: string;
     is_active: boolean;
+    starts_at?: string | null;
+    ends_at?: string | null;
 };
+
+function toLocalISOString(dateStr: string | null | undefined) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    // Adjust for local timezone offset to get local time in ISO format
+    const offset = date.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(date.getTime() - offset)).toISOString().slice(0, 16);
+    return localISOTime;
+}
 
 export default function QuestionForm({ initialData }: { initialData?: Question }) {
     const router = useRouter();
@@ -27,12 +38,11 @@ export default function QuestionForm({ initialData }: { initialData?: Question }
         slug: initialData?.slug || '',
         description: initialData?.description || '',
         is_active: initialData?.is_active ?? true,
+        starts_at: initialData?.starts_at || null,
+        ends_at: initialData?.ends_at || null,
     });
 
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -41,18 +51,23 @@ export default function QuestionForm({ initialData }: { initialData?: Question }
         try {
             if (initialData?.id) {
                 // Update
-                const { error } = await supabase
-                    .from('questions')
-                    .update(formData)
-                    .eq('id', initialData.id);
-                if (error) throw error;
+                const res = await fetch(`/api/admin/questions/${initialData.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData),
+                });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.error || 'Failed to update');
                 toast.success('Question updated successfully.');
             } else {
                 // Create
-                const { error } = await supabase
-                    .from('questions')
-                    .insert([formData]);
-                if (error) throw error;
+                const res = await fetch('/api/admin/questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData),
+                });
+                const json = await res.json();
+                if (!res.ok) throw new Error(json.error || 'Failed to create');
                 toast.success('Question created successfully.');
             }
 
@@ -102,11 +117,32 @@ export default function QuestionForm({ initialData }: { initialData?: Question }
                 />
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="starts_at">Starts At (Optional)</Label>
+                    <Input
+                        id="starts_at"
+                        type="datetime-local"
+                        value={toLocalISOString(formData.starts_at)}
+                        onChange={(e) => setFormData({ ...formData, starts_at: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="ends_at">Ends At (Optional)</Label>
+                    <Input
+                        id="ends_at"
+                        type="datetime-local"
+                        value={toLocalISOString(formData.ends_at)}
+                        onChange={(e) => setFormData({ ...formData, ends_at: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                    />
+                </div>
+            </div>
+
             <div className="flex items-center justify-between p-4 rounded-lg border border-zinc-200 dark:border-zinc-800">
                 <div className="space-y-0.5">
                     <Label className="text-base">Active Status</Label>
                     <p className="text-sm text-zinc-500">
-                        If active, this question will be displayed on the home page.
+                        If active, this question will be displayed on the home page (respecting schedule).
                     </p>
                 </div>
                 <Switch
