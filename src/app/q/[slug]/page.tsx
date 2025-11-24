@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
 import { supabaseServer } from '@/lib/supabase/server';
-import ReasonList from '@/components/ReasonList';
 import Breadcrumb from '@/components/Breadcrumb';
+import dynamic from 'next/dynamic';
+import { ReasonListSkeleton } from '@/components/ReasonList';
+
+const ReasonList = dynamic(() => import('@/components/ReasonList'), {
+  loading: () => <ReasonListSkeleton />
+});
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

@@ -5,7 +5,9 @@ import { MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import TugOfWar from '@/components/TugOfWar';
 import PageViewTracker from '@/components/PageViewTracker';
-import RealtimeVotes from '@/components/RealtimeVotes';
+import dynamic from 'next/dynamic';
+
+const RealtimeVotes = dynamic(() => import('@/components/RealtimeVotes'));
 
 export async function generateMetadata() {
   const db = await supabaseServer();
@@ -113,7 +115,7 @@ export default async function Home() {
         {activeQuestion ? (
           <section className="flex flex-col items-center text-center gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="space-y-6 max-w-2xl w-full">
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 leading-tight">
+              <h2 className="text-4xl md:text-5xl font-bold font-serif tracking-tight text-zinc-900 dark:text-zinc-50 leading-tight">
                 {activeQuestion.title}
               </h2>
 

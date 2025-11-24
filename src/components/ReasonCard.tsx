@@ -61,10 +61,12 @@ export default function ReasonCard({ item, onVoted }: { item: ReasonItem; onVote
 
   return (
     <Card className={cn(
-      "group relative overflow-hidden transition-all hover:shadow-md dark:hover:shadow-primary/5 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm",
+      "group relative overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1",
+      "bg-white/40 dark:bg-zinc-900/40 backdrop-blur-xl border-white/20 dark:border-white/10",
+      "shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]",
       item.is_featured
-        ? "border-amber-400 dark:border-amber-500/50 shadow-amber-100 dark:shadow-amber-900/10"
-        : "border-zinc-200 dark:border-zinc-800"
+        ? "border-amber-400/50 dark:border-amber-500/30 shadow-amber-100/50 dark:shadow-amber-900/20"
+        : "hover:border-zinc-300/50 dark:hover:border-zinc-700/50"
     )}>
       {item.is_featured && (
         <div className="absolute top-0 right-0 p-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-bl-xl border-b border-l border-amber-200 dark:border-amber-800/50">

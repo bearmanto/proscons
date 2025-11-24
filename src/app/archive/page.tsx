@@ -4,18 +4,27 @@ import { Archive } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import SearchInput from '@/components/SearchInput';
 
 export const metadata = {
     title: 'Arsip',
     description: 'Telusuri diskusi dan survei sebelumnya.',
 };
 
-export default async function ArchivePage() {
+export default async function ArchivePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+    const { q } = await searchParams;
     const db = await supabaseServer();
-    const { data: questions } = await db
+
+    let query = db
         .from('questions')
         .select('id, slug, title, created_at, is_active')
         .order('created_at', { ascending: false });
+
+    if (q) {
+        query = query.ilike('title', `%${q}%`);
+    }
+
+    const { data: questions } = await query;
 
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-black selection:bg-primary/20">
@@ -28,14 +37,17 @@ export default async function ArchivePage() {
                         </Button>
                     </Link>
 
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-zinc-900 dark:bg-white rounded-xl text-white dark:text-zinc-900 shadow-sm">
-                            <Archive className="w-6 h-6" />
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-zinc-900 dark:bg-white rounded-xl text-white dark:text-zinc-900 shadow-sm">
+                                <Archive className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Diskusi Terdahulu</h1>
+                                <p className="text-sm text-zinc-600 dark:text-zinc-400">Jelajahi topik sebelumnya.</p>
+                            </div>
                         </div>
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Diskusi Terdahulu</h1>
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400">Jelajahi topik sebelumnya dan lihat bagaimana komunitas memilih.</p>
-                        </div>
+                        <SearchInput placeholder="Cari topik..." />
                     </div>
                 </header>
 
@@ -46,7 +58,9 @@ export default async function ArchivePage() {
                         ))
                     ) : (
                         <div className="text-center py-20 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
-                            <p className="text-zinc-500 dark:text-zinc-400">Tidak ada diskusi ditemukan di arsip.</p>
+                            <p className="text-zinc-500 dark:text-zinc-400">
+                                {q ? `Tidak ada hasil untuk "${q}"` : 'Tidak ada diskusi ditemukan di arsip.'}
+                            </p>
                         </div>
                     )}
                 </section>

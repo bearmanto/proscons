@@ -5,9 +5,28 @@ import ReasonCard, { ReasonItem } from './ReasonCard';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-function SkeletonCard() {
+export function SkeletonCard() {
   return (
     <div className="h-32 rounded-xl bg-zinc-100 dark:bg-zinc-800/50 animate-pulse border border-zinc-200 dark:border-zinc-800" />
+  );
+}
+
+export function ReasonListSkeleton() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <section className="flex flex-col gap-4">
+        <div className="h-8 w-32 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+        <div className="flex flex-col gap-4 min-h-[200px]">
+          {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={`p${i}`} />)}
+        </div>
+      </section>
+      <section className="flex flex-col gap-4">
+        <div className="h-8 w-32 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+        <div className="flex flex-col gap-4 min-h-[200px]">
+          {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={`c${i}`} />)}
+        </div>
+      </section>
+    </div>
   );
 }
 
