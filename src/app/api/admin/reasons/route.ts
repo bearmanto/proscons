@@ -10,6 +10,9 @@ export async function GET(request: Request) {
         const offset = (page - 1) * limit;
 
         const search = url.searchParams.get("search");
+        const side = url.searchParams.get("side");
+        const questionId = url.searchParams.get("question_id");
+        const date = url.searchParams.get("date");
 
         let query = db
             .from("reasons")
@@ -19,6 +22,25 @@ export async function GET(request: Request) {
 
         if (search) {
             query = query.ilike("body", `%${search}%`);
+        }
+
+        if (side && (side === 'pro' || side === 'con')) {
+            query = query.eq("side", side);
+        }
+
+        if (questionId) {
+            query = query.eq("question_id", questionId);
+        }
+
+        if (date) {
+            // Filter by specific date (ignoring time)
+            // We assume date is passed as YYYY-MM-DD
+            const nextDate = new Date(date);
+            nextDate.setDate(nextDate.getDate() + 1);
+
+            query = query
+                .gte("created_at", `${date}T00:00:00`)
+                .lt("created_at", nextDate.toISOString().split('T')[0]);
         }
 
         const { data: reasons, error, count } = await query;

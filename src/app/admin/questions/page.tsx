@@ -1,7 +1,7 @@
 import { supabaseServer } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Plus, ExternalLink, Pencil } from 'lucide-react';
+import { Plus, ExternalLink, Pencil, BarChart2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
     Table,
@@ -80,6 +80,12 @@ export default async function QuestionsPage() {
                                             <Link href={`/q/${q.slug}`} target="_blank">
                                                 <Button variant="ghost" size="icon" title="View Public">
                                                     <ExternalLink className="w-4 h-4" />
+                                                </Button>
+                                            </Link>
+                                            <Link href={`/admin/questions/${q.id}/analytics`}>
+                                                <Button variant="outline" size="sm" className="gap-2" title="Analytics">
+                                                    <BarChart2 className="w-3 h-3" />
+                                                    Analytics
                                                 </Button>
                                             </Link>
                                             <Link href={`/admin/questions/${q.id}`}>

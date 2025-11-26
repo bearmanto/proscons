@@ -22,11 +22,35 @@ export default function AdminReasonsPage() {
     const [totalPages, setTotalPages] = useState(1);
 
     const [search, setSearch] = useState('');
+    const [filterSide, setFilterSide] = useState<string>('all');
+    const [filterQuestion, setFilterQuestion] = useState<string>('all');
+    const [filterDate, setFilterDate] = useState<string>('');
+    const [questions, setQuestions] = useState<any[]>([]);
 
-    async function fetchReasons(p = 1, searchQuery = search) {
+    async function fetchQuestions() {
+        try {
+            const res = await fetch('/api/admin/questions/list');
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                setQuestions(data);
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to load questions for filter');
+        }
+    }
+
+    async function fetchReasons(p = 1) {
         setLoading(true);
         try {
-            const res = await fetch(`/api/admin/reasons?page=${p}&search=${encodeURIComponent(searchQuery)}`);
+            const params = new URLSearchParams();
+            params.set('page', p.toString());
+            if (search) params.set('search', search);
+            if (filterSide !== 'all') params.set('side', filterSide);
+            if (filterQuestion !== 'all') params.set('question_id', filterQuestion); // API expects question_id
+            if (filterDate) params.set('date', filterDate);
+
+            const res = await fetch(`/api/admin/reasons?${params.toString()}`);
             const data = await res.json();
             if (data.reasons) {
                 setReasons(data.reasons);
@@ -42,16 +66,17 @@ export default function AdminReasonsPage() {
     }
 
     useEffect(() => {
-        fetchReasons();
+        fetchQuestions(); // Fetch questions for the filter dropdown
+        fetchReasons(); // Initial fetch of reasons
     }, []);
 
-    // Debounce search
+    // Debounce search and filters
     useEffect(() => {
         const timer = setTimeout(() => {
-            fetchReasons(1, search);
+            fetchReasons(1);
         }, 500);
         return () => clearTimeout(timer);
-    }, [search]);
+    }, [search, filterSide, filterQuestion, filterDate]);
 
     async function toggleDelete(id: string, currentStatus: boolean) {
         // Optimistic update
@@ -99,16 +124,45 @@ export default function AdminReasonsPage() {
 
     return (
         <div className="space-y-8">
-            <header className="flex items-center justify-between">
+            <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Moderation</h1>
                     <p className="text-zinc-500 dark:text-zinc-400">Manage user submitted reasons.</p>
                 </div>
-                <div className="w-64">
+                <div className="flex flex-col md:flex-row gap-2">
+                    <select
+                        className="h-10 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:focus-visible:ring-zinc-300"
+                        value={filterSide}
+                        onChange={(e) => setFilterSide(e.target.value)}
+                    >
+                        <option value="all">All Sides</option>
+                        <option value="pro">Pro</option>
+                        <option value="con">Con</option>
+                    </select>
+
+                    <select
+                        className="h-10 max-w-[200px] rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:focus-visible:ring-zinc-300 truncate"
+                        value={filterQuestion}
+                        onChange={(e) => setFilterQuestion(e.target.value)}
+                    >
+                        <option value="all">All Questions</option>
+                        {questions.map((q: any) => (
+                            <option key={q.id} value={q.id}>{q.title}</option>
+                        ))}
+                    </select>
+
+                    <Input
+                        type="date"
+                        className="w-auto"
+                        value={filterDate}
+                        onChange={(e) => setFilterDate(e.target.value)}
+                    />
+
                     <Input
                         placeholder="Search reasons..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
+                        className="w-64"
                     />
                 </div>
             </header>

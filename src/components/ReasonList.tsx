@@ -31,12 +31,16 @@ export function ReasonListSkeleton() {
 }
 
 
+import { Button } from '@/components/ui/button';
+import { ChevronDown } from 'lucide-react';
 
 export default function ReasonList({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pro, setPro] = useState<ReasonItem[]>([]);
   const [con, setCon] = useState<ReasonItem[]>([]);
+  const [visiblePro, setVisiblePro] = useState(5);
+  const [visibleCon, setVisibleCon] = useState(5);
 
   const load = useCallback(async () => {
     // Don't set loading to true on subsequent reloads to avoid flicker
@@ -102,7 +106,18 @@ export default function ReasonList({ slug }: { slug: string }) {
                 <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Jadilah yang pertama menambahkan pro!</p>
               </div>
             ) : (
-              pro.map((r) => <ReasonCard key={r.id} item={r} onVoted={load} />)
+              <>
+                {pro.slice(0, visiblePro).map((r) => <ReasonCard key={r.id} item={r} onVoted={load} />)}
+                {pro.length > visiblePro && (
+                  <Button
+                    variant="ghost"
+                    className="w-full mt-2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+                    onClick={() => setVisiblePro(prev => prev + 5)}
+                  >
+                    Lihat lebih banyak <ChevronDown className="ml-2 w-4 h-4" />
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </section>
@@ -126,7 +141,18 @@ export default function ReasonList({ slug }: { slug: string }) {
                 <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Jadilah yang pertama menambahkan kontra!</p>
               </div>
             ) : (
-              con.map((r) => <ReasonCard key={r.id} item={r} onVoted={load} />)
+              <>
+                {con.slice(0, visibleCon).map((r) => <ReasonCard key={r.id} item={r} onVoted={load} />)}
+                {con.length > visibleCon && (
+                  <Button
+                    variant="ghost"
+                    className="w-full mt-2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+                    onClick={() => setVisibleCon(prev => prev + 5)}
+                  >
+                    Lihat lebih banyak <ChevronDown className="ml-2 w-4 h-4" />
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </section>

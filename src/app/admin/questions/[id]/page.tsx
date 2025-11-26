@@ -9,6 +9,8 @@ export const metadata = {
 export default async function EditQuestionPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const db = await supabaseServer();
+
+    // Fetch Question
     const { data: question } = await db
         .from('questions')
         .select('*')
