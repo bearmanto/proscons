@@ -17,6 +17,7 @@ function allow(ip: string, key: string, limit = 12, windowMs = 60_000) {
 
 const BodySchema = z.object({
   side: z.enum(["pro", "con"]),
+  impact: z.number().min(1).max(4).optional().default(1),
 });
 
 async function getActiveQuestionId() {
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     const { error } = await admin
       .from("question_votes")
       .upsert(
-        [{ question_id, user_key: uid, side: parsed.data.side }],
+        [{ question_id, user_key: uid, side: parsed.data.side, impact: parsed.data.impact }],
         { onConflict: "question_id,user_key" }
       );
 

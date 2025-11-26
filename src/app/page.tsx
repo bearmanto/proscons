@@ -45,7 +45,7 @@ export default async function Home() {
   const db = await supabaseServer();
   const { data: questions } = await db
     .from('questions')
-    .select('id, slug, title, created_at, starts_at, ends_at')
+    .select('id, slug, title, description, created_at, starts_at, ends_at')
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
@@ -122,7 +122,7 @@ export default async function Home() {
               <TugOfWar proCount={proCount} conCount={conCount} className="max-w-md mx-auto shadow-inner" />
 
               <p className="text-lg text-zinc-600 dark:text-zinc-400">
-                Ikuti diskusi. Pilih satu sisi untuk melihat pendapat orang lain dan tambahkan perspektifmu sendiri.
+                {activeQuestion.description || "Ikuti diskusi. Pilih satu sisi untuk melihat pendapat orang lain dan tambahkan perspektifmu sendiri."}
               </p>
             </div>
 

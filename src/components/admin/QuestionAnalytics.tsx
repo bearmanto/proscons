@@ -12,6 +12,10 @@ interface QuestionAnalyticsProps {
             con: number;
             total: number;
         };
+        impact: {
+            pro: number[];
+            con: number[];
+        };
         reasons: {
             pro: number;
             con: number;
@@ -34,6 +38,13 @@ export default function QuestionAnalytics({ stats }: QuestionAnalyticsProps) {
     const reasonData = [
         { name: 'Pro', value: stats.reasons.pro, color: '#10b981' },
         { name: 'Kontra', value: stats.reasons.con, color: '#f43f5e' },
+    ];
+
+    const impactData = [
+        { level: '1 (Weak)', Pro: stats.impact.pro[1], Con: stats.impact.con[1] },
+        { level: '2', Pro: stats.impact.pro[2], Con: stats.impact.con[2] },
+        { level: '3', Pro: stats.impact.pro[3], Con: stats.impact.con[3] },
+        { level: '4 (Strong)', Pro: stats.impact.pro[4], Con: stats.impact.con[4] },
     ];
 
     return (
@@ -102,21 +113,18 @@ export default function QuestionAnalytics({ stats }: QuestionAnalyticsProps) {
                 </Card>
                 <Card className="col-span-1">
                     <CardHeader>
-                        <CardTitle>Reason Distribution</CardTitle>
+                        <CardTitle>Impact Distribution (Intensity)</CardTitle>
                     </CardHeader>
                     <CardContent className="pl-2">
                         <div className="h-[200px]">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={reasonData}>
+                                <BarChart data={impactData}>
                                     <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" />
+                                    <XAxis dataKey="level" />
                                     <YAxis />
                                     <Tooltip />
-                                    <Bar dataKey="value">
-                                        {reasonData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Bar>
+                                    <Bar dataKey="Pro" fill="#10b981" stackId="a" />
+                                    <Bar dataKey="Con" fill="#f43f5e" stackId="a" />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>

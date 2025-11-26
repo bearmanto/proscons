@@ -25,11 +25,35 @@ export default async function QuestionAnalyticsPage({ params }: { params: Promis
     }
 
     // Fetch Stats
-    // 1. Votes (from question_votes table)
-    const { count: proVotes } = await db.from('question_votes').select('*', { count: 'exact', head: true }).eq('question_id', id).eq('side', 'pro');
-    const { count: conVotes } = await db.from('question_votes').select('*', { count: 'exact', head: true }).eq('question_id', id).eq('side', 'con');
+    // 2. Fetch Votes with Impact
+    const { data: votes } = await db
+        .from('question_votes')
+        .select('side, impact')
+        .eq('question_id', id);
 
-    // 2. Reasons & Replies
+    const proVotesList = votes?.filter(v => v.side === 'pro') || [];
+    const conVotesList = votes?.filter(v => v.side === 'con') || [];
+
+    const proVotes = proVotesList.length;
+    const conVotes = conVotesList.length;
+
+    // Calculate Impact Distribution
+    const impactDist = {
+        pro: [0, 0, 0, 0, 0], // 0 index unused, 1-4 used
+        con: [0, 0, 0, 0, 0],
+    };
+
+    proVotesList.forEach(v => {
+        const impact = v.impact || 1; // Default to 1 if null (legacy)
+        if (impact >= 1 && impact <= 4) impactDist.pro[impact]++;
+    });
+
+    conVotesList.forEach(v => {
+        const impact = v.impact || 1;
+        if (impact >= 1 && impact <= 4) impactDist.con[impact]++;
+    });
+
+    // 3. Reasons & Replies
     const { data: allReasons } = await db
         .from('reasons')
         .select('id, side, score, body, parent_id')
@@ -43,16 +67,17 @@ export default async function QuestionAnalyticsPage({ params }: { params: Promis
     const proReasons = rootReasons.filter(r => r.side === 'pro');
     const conReasons = rootReasons.filter(r => r.side === 'con');
 
-    // 3. Top Reasons
+    // 4. Top Reasons
     const topPro = [...proReasons].sort((a, b) => b.score - a.score).slice(0, 5);
     const topCon = [...conReasons].sort((a, b) => b.score - a.score).slice(0, 5);
 
     const stats = {
         votes: {
-            pro: proVotes || 0,
-            con: conVotes || 0,
-            total: (proVotes || 0) + (conVotes || 0),
+            pro: proVotes,
+            con: conVotes,
+            total: proVotes + conVotes,
         },
+        impact: impactDist,
         reasons: {
             pro: proReasons.length,
             con: conReasons.length,
