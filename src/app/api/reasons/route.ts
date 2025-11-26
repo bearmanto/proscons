@@ -21,6 +21,8 @@ const PostSchema = z.object({
   body: z.string().min(2).max(500),
   // Optional explicit question slug; if omitted, we use the active question
   slug: z.string().min(1).optional(),
+  question_id: z.string().optional(),
+  parent_id: z.string().optional(),
 });
 
 async function getQuestionIdBySlugOrActive(slug?: string) {
@@ -71,7 +73,7 @@ export async function GET(request: Request) {
     // Grab reasons with nested votes to compute score on the server
     const { data, error } = await admin
       .from("reasons")
-      .select("id, question_id, side, body, created_at, is_featured, reason_votes(value)")
+      .select("id, question_id, side, body, created_at, is_featured, parent_id, impact, reason_votes(value)")
       .eq("question_id", question_id)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
@@ -88,7 +90,7 @@ export async function GET(request: Request) {
         neutral: values.filter((v) => v === 0).length,
         down: values.filter((v) => v === -1).length,
       };
-      const item = { id: r.id, body: r.body, side: r.side, created_at: r.created_at, score, counts, is_featured: r.is_featured };
+      const item = { id: r.id, question_id: r.question_id, body: r.body, side: r.side, created_at: r.created_at, score, counts, is_featured: r.is_featured, parent_id: r.parent_id, impact: r.impact };
       (r.side === "pro" ? bySide.pro : bySide.con).push(item);
     }
 
@@ -126,7 +128,10 @@ export async function POST(request: Request) {
 
 
 
-    const question_id = await getQuestionIdBySlugOrActive(parsed.data.slug);
+    let question_id = parsed.data.question_id;
+    if (!question_id) {
+      question_id = await getQuestionIdBySlugOrActive(parsed.data.slug);
+    }
 
     // Attach user_id if logged in (SSR client carries the session from cookies)
     const supabase = await supabaseServer();
@@ -142,17 +147,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Please keep the discussion civil." }, { status: 400 });
     }
 
-    // 2. Check Limit (One reason per user per question)
+    // 2. Check Limit (One reason per user per question) - ONLY for root reasons
     // We check both user_id (if logged in) and uid (cookie)
-    const { count } = await admin
-      .from('reasons')
-      .select('*', { count: 'exact', head: true })
-      .eq('question_id', question_id)
-      .or(user ? `user_id.eq.${user.id},uid.eq.${uid}` : `uid.eq.${uid}`)
-      .is('deleted_at', null);
+    if (!parsed.data.parent_id) {
+      const { count } = await admin
+        .from('reasons')
+        .select('*', { count: 'exact', head: true })
+        .eq('question_id', question_id)
+        .or(user ? `user_id.eq.${user.id},uid.eq.${uid}` : `uid.eq.${uid}`)
+        .is('deleted_at', null)
+        .is('parent_id', null); // Only check for root reasons
 
-    if (count && count > 0) {
-      return NextResponse.json({ error: "You have already submitted a reason for this question." }, { status: 409 });
+      if (count && count > 0) {
+        return NextResponse.json({ error: "You have already submitted a reason for this question." }, { status: 409 });
+      }
     }
 
     const { error } = await supabase
@@ -164,6 +172,7 @@ export async function POST(request: Request) {
         user_id: user?.id ?? null,
         side: parsed.data.side,
         body: parsed.data.body.trim(),
+        parent_id: parsed.data.parent_id ?? null,
       });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

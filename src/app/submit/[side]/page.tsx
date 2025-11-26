@@ -67,6 +67,7 @@ export default function SubmitReasonPage() {
               {busy ? 'Mengirim...' : 'Kirim Alasan'}
             </Button>
             <Button type="button" variant="secondary" onClick={() => router.back()}>Kembali</Button>
+            <Button type="button" variant="ghost" onClick={() => router.push(`/q/${encodeURIComponent(slug)}`)}>Lewati (Hanya Vote)</Button>
           </div>
         </form>
       </main>

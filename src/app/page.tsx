@@ -119,7 +119,7 @@ export default async function Home() {
                 {activeQuestion.title}
               </h2>
 
-              <TugOfWar proCount={proCount} conCount={conCount} className="h-3 max-w-md mx-auto shadow-inner" />
+              <TugOfWar proCount={proCount} conCount={conCount} className="max-w-md mx-auto shadow-inner" />
 
               <p className="text-lg text-zinc-600 dark:text-zinc-400">
                 Ikuti diskusi. Pilih satu sisi untuk melihat pendapat orang lain dan tambahkan perspektifmu sendiri.
