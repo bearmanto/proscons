@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { supabaseServer } from '@/lib/supabase/server';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = 'https://proscons.app';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://opinimoo.com';
     const db = await supabaseServer();
 
     // Fetch all active questions
