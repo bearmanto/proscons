@@ -177,6 +177,34 @@ export async function POST(request: Request) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+    // Notification Logic: If this is a reply, notify the parent author
+    if (parsed.data.parent_id && user) {
+      // Fetch parent reason to get author
+      const { data: parentReason } = await admin
+        .from('reasons')
+        .select('user_id, question_id')
+        .eq('id', parsed.data.parent_id)
+        .single();
+
+      if (parentReason && parentReason.user_id && parentReason.user_id !== user.id) {
+        // Fetch question slug for linking
+        const { data: question } = await admin
+          .from('questions')
+          .select('slug')
+          .eq('id', parentReason.question_id)
+          .single();
+
+        await admin.from('notifications').insert({
+          user_id: parentReason.user_id,
+          type: 'reply',
+          actor_id: user.id,
+          resource_id: parsed.data.parent_id, // Link to the parent reason (or the new reply?) - usually link to the discussion
+          resource_slug: question?.slug,
+          is_read: false,
+        });
+      }
+    }
+
     return NextResponse.json({ ok: true, question_id });
   } catch (e: any) {
     return NextResponse.json({ error: e.message ?? "Unexpected error" }, { status: 500 });

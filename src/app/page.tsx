@@ -6,6 +6,7 @@ import Link from 'next/link';
 import TugOfWar from '@/components/TugOfWar';
 import PageViewTracker from '@/components/PageViewTracker';
 import dynamic from 'next/dynamic';
+import NotificationBell from '@/components/NotificationBell';
 
 const RealtimeVotes = dynamic(() => import('@/components/RealtimeVotes'));
 
@@ -91,6 +92,8 @@ export default async function Home() {
     }
   }
 
+  const { data: { user } } = await db.auth.getUser();
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black selection:bg-primary/20">
       <main className="mx-auto max-w-3xl px-6 py-12 md:py-20">
@@ -99,7 +102,7 @@ export default async function Home() {
             <div className="p-2 bg-zinc-900 dark:bg-white rounded-lg text-white dark:text-zinc-900 shadow-lg shadow-zinc-900/20">
               <MessageSquare className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Pro & Kontra</h1>
+            <h1 className="text-xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50 uppercase italic">Opinimoo</h1>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/archive" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
@@ -108,6 +111,7 @@ export default async function Home() {
             <Link href="/me" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
               Saya
             </Link>
+            {user && <NotificationBell />}
             {activeQuestion && <ShareMenu url={shareUrl} title={activeQuestion.title} />}
           </div>
         </header>
@@ -148,7 +152,7 @@ export default async function Home() {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'WebSite',
-            name: 'Pro & Kontra',
+            name: 'Opinimoo',
             url: process.env.NEXT_PUBLIC_SITE_URL || 'https://proscons.app',
             potentialAction: {
               '@type': 'SearchAction',

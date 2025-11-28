@@ -16,17 +16,17 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://proscons.app'),
-  title: 'Pro & Kontra - Platform Debat Anonim',
+  title: 'Opinimoo - Platform Debat Anonim',
   description: 'Tempat aman untuk berdiskusi dan melihat dua sisi dari setiap cerita.',
   openGraph: {
     type: 'website',
-    title: 'Pro & Kontra',
+    title: 'Opinimoo',
     description: 'Pilih pro atau kontra, jelaskan alasanmu, dan peringkatkan argumen terbaik.',
     url: '/',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pro & Kontra',
+    title: 'Opinimoo',
     description: 'Pilih pro atau kontra, jelaskan alasanmu, dan peringkatkan argumen terbaik.',
   },
 };
