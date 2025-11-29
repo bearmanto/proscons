@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import AccountActions from '@/components/AccountActions';
 import BadgeList from '@/components/BadgeList';
 import ProfileForm from '@/components/ProfileForm';
+import { ModeToggle } from '@/components/ModeToggle';
 
 export const metadata = {
     title: 'Akun',
@@ -33,6 +34,7 @@ export default async function AccountPage() {
                         </Link>
 
                         <div className="flex items-center gap-4">
+                            <ModeToggle />
                             <div className="p-4 bg-zinc-200 dark:bg-zinc-800 rounded-full text-zinc-500 dark:text-zinc-400">
                                 <User className="w-8 h-8" />
                             </div>

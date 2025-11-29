@@ -7,6 +7,7 @@ import TugOfWar from '@/components/TugOfWar';
 import PageViewTracker from '@/components/PageViewTracker';
 import dynamic from 'next/dynamic';
 import NotificationBell from '@/components/NotificationBell';
+import { ModeToggle } from '@/components/ModeToggle';
 
 const RealtimeVotes = dynamic(() => import('@/components/RealtimeVotes'));
 
@@ -104,6 +105,7 @@ export default async function Home() {
             </div>
             <h1 className="text-xl font-black tracking-tighter text-zinc-900 dark:text-zinc-50 uppercase italic">Opinimoo</h1>
           </div>
+
           <div className="flex items-center gap-3">
             <Link href="/archive" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
               Arsip
@@ -111,6 +113,7 @@ export default async function Home() {
             <Link href="/me" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
               Saya
             </Link>
+            <ModeToggle />
             {user && <NotificationBell />}
             {activeQuestion && <ShareMenu url={shareUrl} title={activeQuestion.title} />}
           </div>

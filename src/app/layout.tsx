@@ -5,7 +5,32 @@ import { Toaster } from "@/components/ui/sonner";
 import FluidBackground from '@/components/FluidBackground';
 import { ThemeProvider } from "@/components/theme-provider";
 
-// ...
+const playfair = Playfair_Display({
+  variable: '--font-playfair',
+  subsets: ['latin'],
+});
+
+const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://proscons.app'),
+  title: 'Opinimoo - Platform Debat Anonim',
+  description: 'Tempat aman untuk berdiskusi dan melihat dua sisi dari setiap cerita.',
+  openGraph: {
+    type: 'website',
+    title: 'Opinimoo',
+    description: 'Pilih pro atau kontra, jelaskan alasanmu, dan peringkatkan argumen terbaik.',
+    url: '/',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Opinimoo',
+    description: 'Pilih pro atau kontra, jelaskan alasanmu, dan peringkatkan argumen terbaik.',
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
