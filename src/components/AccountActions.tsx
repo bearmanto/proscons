@@ -41,20 +41,23 @@ export default function AccountActions() {
     };
 
     return (
-        <div className="flex flex-col gap-4 w-full max-w-sm">
-            <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 space-y-4">
-                <h3 className="font-medium text-zinc-900 dark:text-zinc-100">Sinkronisasi Aktivitas</h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Jika Anda sebelumnya berkontribusi tanpa login di perangkat ini, Anda dapat menggabungkan aktivitas tersebut ke akun ini.
-                </p>
+        <div className="flex flex-col gap-6 w-full max-w-sm">
+            {/* Sync Section */}
+            <div className="p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 space-y-4 shadow-sm">
+                <div className="space-y-1">
+                    <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Sinkronisasi Aktivitas</h3>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                        Gabungkan aktivitas anonim dari perangkat ini ke akun Anda.
+                    </p>
+                </div>
 
                 {claimed ? (
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-sm rounded-lg flex items-start gap-2">
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-sm rounded-lg flex items-start gap-2 border border-emerald-100 dark:border-emerald-900/50">
                         <Check className="w-4 h-4 mt-0.5 shrink-0" />
                         <div>
                             <p className="font-medium">Berhasil disinkronisasi!</p>
                             <p className="text-xs opacity-80 mt-1">
-                                {stats?.moved_reasons} argumen dan {stats?.merged_votes} suara telah ditambahkan ke akun Anda.
+                                {stats?.moved_reasons} argumen dan {stats?.merged_votes} suara ditambahkan.
                             </p>
                         </div>
                     </div>
@@ -63,7 +66,7 @@ export default function AccountActions() {
                         onClick={handleClaim}
                         disabled={claiming}
                         variant="outline"
-                        className="w-full gap-2"
+                        className="w-full gap-2 border-dashed"
                     >
                         {claiming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                         Klaim Aktivitas Anonim
@@ -71,14 +74,17 @@ export default function AccountActions() {
                 )}
             </div>
 
-            <Button
-                variant="destructive"
-                onClick={handleSignOut}
-                className="w-full gap-2"
-            >
-                <LogOut className="w-4 h-4" />
-                Keluar
-            </Button>
+            {/* Logout Section */}
+            <div className="pt-2">
+                <Button
+                    variant="ghost"
+                    onClick={handleSignOut}
+                    className="w-full gap-2 text-zinc-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                >
+                    <LogOut className="w-4 h-4" />
+                    Keluar dari Akun
+                </Button>
+            </div>
         </div>
     );
 }
