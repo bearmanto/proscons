@@ -35,7 +35,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="antialiased" suppressHydrationWarning>
-      <body className={`${playfair.variable} ${inter.variable} antialiased font-sans`}>
+      <body className={`${playfair.variable} ${inter.variable} antialiased font-sans tracking-tight`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
